@@ -35,8 +35,6 @@ class Layer2 : public std::enable_shared_from_this<Layer2>
 
   /** my individual addresses */
   Array < eibaddr_t > indaddr;
-  /** source addresses when the destination is my own */
-  Array < eibaddr_t > revaddr;
   /** my group addresses */
   Array < eibaddr_t > groupaddr;
 
@@ -58,26 +56,23 @@ public:
   Layer2 (L2options *opt, Trace *tr = 0);
   virtual bool init (Layer3 *l3);
 
-  /** sends a Layer 2 frame asynchronouse */
+  /** sends a Layer 2 frame to this interface */
   virtual void Send_L_Data (LPDU * l) = 0;
   virtual void Send_L_Data (L_Data_PDU * l) { Send_L_Data((LPDU *)l); }
 
+  /** receives a frame, forwards to L3, possibly after modifying it somewhat */
+  virtual void Recv_L_Data (LPDU * l);
+
   /** try to add the individual addr to the device, return true if successful */
   virtual bool addAddress (eibaddr_t addr);
-  /** add the reverse addr to the device, return true if successful */
-  virtual bool addReverseAddress (eibaddr_t addr);
   /** try to add the group address addr to the device, return true if successful */
   virtual bool addGroupAddress (eibaddr_t addr);
   /** try to remove the individual address addr to the device, return true if successful */
   virtual bool removeAddress (eibaddr_t addr);
-  /** try to remove the individual address addr to the device, return true if successful */
-  virtual bool removeReverseAddress (eibaddr_t addr);
   /** try to remove the group address addr to the device, return true if successful */
   virtual bool removeGroupAddress (eibaddr_t addr);
   /** individual address known? */
   bool hasAddress (eibaddr_t addr);
-  /** reverse address known? */
-  bool hasReverseAddress (eibaddr_t addr);
   /** group address known? */
   bool hasGroupAddress (eibaddr_t addr);
 
@@ -140,6 +135,35 @@ public:
   bool addGroupAddress (eibaddr_t addr UNUSED) { return 1; }
   bool removeAddress (eibaddr_t addr UNUSED) { return 1; }
   bool removeGroupAddress (eibaddr_t addr UNUSED) { return 1; }
+};
+
+/** Layer2 subclass which maps individual addresses,
+ *  for adapters that don't act as gateways
+ */
+typedef struct {
+    eibaddr_t src;
+    eibaddr_t dest;
+} phys_comm;
+
+class Layer2Single : public Layer2
+{
+public:
+  Layer2Single (L2options *opt, Trace *tr = 0) : Layer2(opt,tr) {}
+  /** source addresses when the destination is my own */
+  virtual void Send_L_Data (LPDU * l); // address mangling happens here
+  virtual void Recv_L_Data (LPDU * l); // address de-mangling happens here
+protected:
+  Array < phys_comm > revaddr;
+
+  virtual void Send_L_Data_ (LPDU * l) = 0; // real implementation
+
+public:
+  /** add the reverse addr pair to the device */
+  void addReverseAddress (eibaddr_t src, eibaddr_t dest);
+  /** try to remove the individual address addr to the device, return true if successful */
+  //bool removeReverseAddress (eibaddr_t addr); // unused
+  /** reverse address known? */
+  eibaddr_t getDestinationAddress (eibaddr_t src);
 };
 
 #endif

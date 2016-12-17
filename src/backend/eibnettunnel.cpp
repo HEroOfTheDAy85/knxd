@@ -22,7 +22,7 @@
 #include "layer3.h"
 
 EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
-				const char *srcip, int Dataport, L2options *opt) : Layer2 (opt)
+				const char *srcip, int Dataport, L2options *opt) : Layer2Single (opt)
 {
   TRACEPRINTF (t, 2, this, "Open");
   pth_sem_init (&insignal);
@@ -90,7 +90,7 @@ bool EIBNetIPTunnel::init (Layer3 *l3)
 }
 
 void
-EIBNetIPTunnel::Send_L_Data (LPDU * l)
+EIBNetIPTunnel::Send_L_Data_ (LPDU * l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
   if (l->getType () != L_Data)
@@ -310,7 +310,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 	      if (treq.CEMI[0] == 0x2B)
 		{
 		  L_Busmonitor_PDU *l2 = CEMI_to_Busmonitor (treq.CEMI, shared_from_this());
-		  l3->recv_L_Data (l2);
+		  Recv_L_Data (l2);
 		  break;
 		}
 	      if (treq.CEMI[0] != 0x29)
@@ -325,16 +325,13 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		  TRACEPRINTF (t, 1, this, "Recv %s", c->Decode ()());
 		  if (mode != BUSMODE_MONITOR)
 		    {
-		      if (c->AddrType == IndividualAddress
-			  && hasAddress(c->dest))
-			c->dest = 0;
-		      l3->recv_L_Data (c);
+		      Recv_L_Data (c);
 		      break;
 		    }
 		  L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (shared_from_this());
 		  p1->pdu = c->ToPacket ();
 		  delete c;
-		  l3->recv_L_Data (p1);
+		  Recv_L_Data (p1);
 		  break;
 		}
 	      TRACEPRINTF (t, 1, this, "Unknown CEMI");

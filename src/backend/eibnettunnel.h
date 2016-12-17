@@ -23,7 +23,7 @@
 #include "layer2.h"
 #include "eibnetip.h"
 
-class EIBNetIPTunnel:public Layer2, private Thread
+class EIBNetIPTunnel:public Layer2Single, private Thread
 {
   EIBNetIPSocket *sock;
   struct sockaddr_in caddr;
@@ -49,7 +49,7 @@ public:
   bool enterBusmonitor ();
   bool leaveBusmonitor ();
 
-  void Send_L_Data (LPDU * l);
+  void Send_L_Data_ (LPDU * l);
 
   bool Send_Queue_Empty ();
 };

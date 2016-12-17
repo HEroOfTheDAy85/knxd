@@ -237,7 +237,7 @@ EMI2Layer2::Run (pth_sem_t * stop1)
 	      if (p->AddrType == IndividualAddress)
 		p->dest = 0;
 	      TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ()());
-	      l3->recv_L_Data (p);
+	      Recv_L_Data (p);
 	      continue;
 	    }
 	}
@@ -249,7 +249,7 @@ EMI2Layer2::Run (pth_sem_t * stop1)
 	  p->pdu.set (c->array () + 4, c->len () - 4);
 	  delete c;
 	  TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ()());
-	  l3->recv_L_Data (p);
+	  Recv_L_Data (p);
 	  continue;
 	}
       delete c;

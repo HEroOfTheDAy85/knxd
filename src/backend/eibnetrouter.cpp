@@ -127,13 +127,13 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 	      TRACEPRINTF (t, 2, this, "Recv %s", c->Decode ()());
 	      if (mode & BUSMODE_UP)
 		{
-		  l3->recv_L_Data (c);
+		  Recv_L_Data (c);
 		  continue;
 		}
 	      L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (shared_from_this());
 	      p1->pdu = c->ToPacket ();
 	      delete c;
-	      l3->recv_L_Data (p1);
+	      Recv_L_Data (p1);
 	      continue;
 	    }
 	}

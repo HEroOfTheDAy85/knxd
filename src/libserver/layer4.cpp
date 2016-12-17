@@ -85,7 +85,7 @@ T_Broadcast::Send (const CArray & c)
   l->dest = 0;
   l->AddrType = GroupAddress;
   l->data = t.ToPacket ();
-  l3->recv_L_Data (l);
+  Recv_L_Data (l);
 }
 
 BroadcastComm *
@@ -156,7 +156,7 @@ T_Group::Send (const CArray & c)
   l->dest = groupaddr;
   l->AddrType = GroupAddress;
   l->data = t.ToPacket ();
-  l3->recv_L_Data (l);
+  Recv_L_Data (l);
 }
 
 T_Group::~T_Group ()
@@ -194,9 +194,6 @@ T_TPDU::T_TPDU (Trace * tr, eibaddr_t d)
   TRACEPRINTF (tr, 4, this, "OpenTPDU %s", FormatEIBAddr (d)());
   src = d;
   pth_sem_init (&sem);
-  init_ok = false;
-  if (!addReverseAddress (src))
-    return;
   init_ok = true;
 }
 
@@ -220,7 +217,7 @@ T_TPDU::Send (const TpduComm & c)
   l->dest = c.addr;
   l->AddrType = IndividualAddress;
   l->data = c.data;
-  l3->recv_L_Data (l);
+  Recv_L_Data (l);
 }
 
 T_TPDU::~T_TPDU ()
@@ -295,7 +292,7 @@ T_Individual::Send (const CArray & c)
   l->dest = dest;
   l->AddrType = IndividualAddress;
   l->data = t.ToPacket ();
-  l3->recv_L_Data (l);
+  Recv_L_Data (l);
 }
 
 T_Individual::~T_Individual ()
@@ -401,7 +398,7 @@ T_Connection::SendConnect ()
   l->AddrType = IndividualAddress;
   l->data = p.ToPacket ();
   l->prio = PRIO_SYSTEM;
-  l3->recv_L_Data (l);
+  Recv_L_Data (l);
 }
 
 void
@@ -415,7 +412,7 @@ T_Connection::SendDisconnect ()
   l->AddrType = IndividualAddress;
   l->data = p.ToPacket ();
   l->prio = PRIO_SYSTEM;
-  l3->recv_L_Data (l);
+  Recv_L_Data (l);
 }
 
 void
@@ -429,7 +426,7 @@ T_Connection::SendAck (int serno)
   l->dest = dest;
   l->AddrType = IndividualAddress;
   l->data = p.ToPacket ();
-  l3->recv_L_Data (l);
+  Recv_L_Data (l);
 }
 
 void
@@ -444,7 +441,7 @@ T_Connection::SendData (int serno, const CArray & c)
   l->dest = dest;
   l->AddrType = IndividualAddress;
   l->data = p.ToPacket ();
-  l3->recv_L_Data (l);
+  Recv_L_Data (l);
 }
 
 /*
@@ -646,7 +643,7 @@ GroupSocket::Send (const GroupAPDU & c)
   l->dest = c.dst;
   l->AddrType = GroupAddress;
   l->data = t.ToPacket ();
-  l3->recv_L_Data (l);
+  Recv_L_Data (l);
 }
 
 GroupAPDU *

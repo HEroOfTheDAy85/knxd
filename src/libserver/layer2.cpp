@@ -42,6 +42,12 @@ Layer2::init (Layer3 *layer3)
 }
 
 void
+Layer2::Recv_L_Data (LPDU * l)
+{
+  l3->recv_L_Data (l);
+}
+
+void
 Layer2::RunStop()
 {
   if (l3) {
@@ -58,19 +64,6 @@ Layer2::addAddress (eibaddr_t addr)
     if (indaddr[i] == addr)
       return false;
   indaddr.add (addr);
-  return true;
-}
-
-bool
-Layer2::addReverseAddress (eibaddr_t addr)
-{
-  if (addr == 0)
-    return false;
-  unsigned i;
-  for (i = 0; i < revaddr (); i++)
-    if (revaddr[i] == addr)
-      return false;
-  revaddr.add (addr);
   return true;
 }
 
@@ -99,19 +92,6 @@ Layer2::removeAddress (eibaddr_t addr)
 }
 
 bool
-Layer2::removeReverseAddress (eibaddr_t addr)
-{
-  unsigned i;
-  for (i = 0; i < revaddr (); i++)
-    if (revaddr[i] == addr)
-      {
-        revaddr.deletepart (i, 1);
-        return true;
-      }
-  return false;
-}
-
-bool
 Layer2::removeGroupAddress (eibaddr_t addr)
 {
   unsigned i;
@@ -129,15 +109,6 @@ Layer2::hasAddress (eibaddr_t addr)
 {
   for (unsigned int i = 0; i < indaddr (); i++)
     if (indaddr[i] == addr)
-      return true;
-  return false;
-}
-
-bool
-Layer2::hasReverseAddress (eibaddr_t addr)
-{
-  for (unsigned int i = 0; i < revaddr (); i++)
-    if (revaddr[i] == addr)
       return true;
   return false;
 }
@@ -193,5 +164,49 @@ bool
 Layer2::Send_Queue_Empty ()
 {
   return true;
+}
+
+void Layer2Single::addReverseAddress (eibaddr_t src, eibaddr_t dest)
+{
+  for (unsigned int i = 0; i < revaddr (); i++)
+    if (revaddr[i].dest == dest) {
+      revaddr[i].src = src;
+      return;
+    }
+  phys_comm srcdest = (phys_comm) { .src=src, .dest=dest };
+  revaddr.add(srcdest);
+}
+
+eibaddr_t Layer2Single::getDestinationAddress (eibaddr_t src)
+{
+  for (unsigned int i = 0; i < revaddr (); i++)
+    if (revaddr[i].dest == src)
+      return revaddr[i].src;
+
+  return 0;
+}
+
+void Layer2Single::Send_L_Data (LPDU * l)
+{
+  /* Sending a packet to this interface: record address pair, clear source */
+  if (l->getType () == L_Data) {
+    L_Data_PDU *l1 = dynamic_cast<L_Data_PDU *>(l);
+    if (l1->AddrType == IndividualAddress) {
+      addReverseAddress (l1->source, l1->dest);
+      l1->source = 0;
+    }
+  }
+  Send_L_Data_(l);
+}
+
+void Layer2Single::Recv_L_Data (LPDU * l) {
+  /* Receiving a packet from this interface: reverse-lookup real destination from source */
+  if (l->getType () == L_Data) {
+    L_Data_PDU *l1 = dynamic_cast<L_Data_PDU *>(l);
+    if (l1->AddrType == IndividualAddress) {
+      l1->dest = getDestinationAddress (l1->source);
+    }
+  }
+  Layer2::Recv_L_Data(l);
 }
 

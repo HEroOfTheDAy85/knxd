@@ -613,7 +613,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 	      c->hopcount--;
 	      addNAT (*c);
 	      c->object = this;
-	      l3->recv_L_Data (c);
+	      Recv_L_Data (c);
 	    }
 	  else
 	    {
@@ -853,7 +853,7 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
 		}
 	      c->object = this;
 	      if (r1.CEMI[0] == 0x11 || r1.CEMI[0] == 0x29)
-		l3->recv_L_Data (c);
+		Recv_L_Data (c);
 	      else
 		delete c;
 	    }

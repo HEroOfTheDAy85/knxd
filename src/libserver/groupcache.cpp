@@ -212,7 +212,7 @@ GroupCacheEntry
   l->source = 0;
   l->dest = addr;
   l->AddrType = GroupAddress;
-  l3->recv_L_Data (l);
+  Recv_L_Data (l);
 
   do
     {

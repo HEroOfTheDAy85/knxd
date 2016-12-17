@@ -282,6 +282,13 @@ Layer3::Run (pth_sem_t * stop1)
                 }
               delete l2;
             }
+          if (!l1->dest)
+            {
+              // I have no idea what to do with this.
+              TRACEPRINTF (t, 3, this, "Destination zero: %s", l1->Decode ()());
+              delete l;
+              continue;
+            }
           if (!l1->hopcount)
             {
               TRACEPRINTF (t, 3, this, "Hopcount zero: %s", l1->Decode ()());
@@ -314,8 +321,6 @@ Layer3::Run (pth_sem_t * stop1)
               l1->source = l2->remoteAddr ? l2->remoteAddr : defaultAddr;
             if (l1->source != defaultAddr)
               l2->addAddress (l1->source);
-            if (l1->AddrType == IndividualAddress && !l2->hasAddress(l1->dest))
-              l2->addReverseAddress (l1->dest);
           }
 
 	  if (l1->AddrType == IndividualAddress
@@ -342,15 +347,15 @@ Layer3::Run (pth_sem_t * stop1)
 	      // This is not so easy: we want to send to whichever
 	      // interface on which the address has appeared. If it hasn't
 	      // been seen yet, we send to all interfaces which are buses.
-	      // which get marked by accepting the otherwise-illegal physical
+	      // which are defined by accepting the otherwise-illegal physical
 	      // address 0.
+              assert (l1->dest != 0);
 	      bool found = false;
 	      for (i = 0; i < layer2 (); i++)
                 {
                   if (layer2[i] == l1->l2)
 		    continue;
-                  if (l1->dest ? layer2[i]->hasAddress (l1->dest)
-		               : layer2[i]->hasReverseAddress (l1->source))
+                  if (layer2[i]->hasAddress (l1->dest))
 		    {
 		      found = true;
 		      break;
@@ -359,8 +364,7 @@ Layer3::Run (pth_sem_t * stop1)
 	      for (i = 0; i < layer2 (); i++)
 		if ((l1->hopcount == 7)
                     || (layer2[i] != l1->l2
-		     && l1->dest ? layer2[i]->hasAddress (found ? l1->dest : 0)
-		                 : layer2[i]->hasReverseAddress (l1->source)))
+		     && layer2[i]->hasAddress (found ? l1->dest : 0)))
 		  layer2[i]->Send_L_Data (new L_Data_PDU (*l1));
 	    }
 	}

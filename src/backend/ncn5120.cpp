@@ -188,14 +188,14 @@ NCN5120SerialLayer2Driver::RecvLPDU (const uchar * data, int len)
     {
       L_Busmonitor_PDU *l = new L_Busmonitor_PDU (shared_from_this());
       l->pdu.set (data, len);
-      l3->recv_L_Data (l);
+      Recv_L_Data (l);
     }
   if (mode != BUSMODE_MONITOR)
     {
       LPDU *l = LPDU::fromPacket (CArray (data, len), shared_from_this());
       if (l->getType () == L_Data && ((L_Data_PDU *) l)->valid_checksum)
 	{
-	  l3->recv_L_Data (l);
+	  Recv_L_Data (l);
 	}
       else
 	delete l;
